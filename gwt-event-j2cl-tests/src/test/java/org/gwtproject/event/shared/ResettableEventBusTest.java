@@ -20,7 +20,7 @@ import org.gwtproject.event.shared.testing.CountingEventBus;
 import org.junit.Test;
 
 /** Eponymous unit test. */
-@J2clTestInput(SimpleEventBusTest.class)
+@J2clTestInput(ResettableEventBusTest.class)
 public class ResettableEventBusTest extends EventBusTestBase {
 
   @Test

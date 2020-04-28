@@ -23,51 +23,8 @@ import org.gwtproject.event.shared.testing.CountingEventBus;
 import org.junit.Test;
 
 /** Eponymous unit test. */
-@J2clTestInput(
-    SimpleEventBusTest
-        .class) // TODO: ask Colin, will this will crash the test case when uncommmented
+@J2clTestInput(SimpleEventBusTest.class)
 public class SimpleEventBusTest extends EventBusTestBase {
-
-  interface Command {
-    void execute();
-  }
-
-  class ShyHandler implements FooEvent.Handler {
-    HandlerRegistration r;
-
-    @Override
-    public void onFoo(FooEvent event) {
-      add(this);
-      r.removeHandler();
-    }
-  }
-
-  class SourcedHandler implements FooEvent.Handler {
-    final String expectedSource;
-
-    SourcedHandler(String source) {
-      this.expectedSource = source;
-    }
-
-    @Override
-    public void onFoo(FooEvent event) {
-      add(this);
-      assertEquals(expectedSource, event.getSource());
-    }
-  }
-
-  static class ThrowingHandler implements FooEvent.Handler {
-    private final RuntimeException e;
-
-    public ThrowingHandler(RuntimeException e) {
-      this.e = e;
-    }
-
-    @Override
-    public void onFoo(FooEvent event) {
-      throw e;
-    }
-  }
 
   @Test
   public void testAddAndRemoveHandlers() {
@@ -136,11 +93,21 @@ public class SimpleEventBusTest extends EventBusTestBase {
     }
   }
 
+  private void assertThrowsNpe(Command command) {
+    try {
+      command.execute();
+      fail("expected NullPointerException");
+    } catch (NullPointerException e) {
+      /* pass */
+    }
+  }
+
   @Test
   public void testConcurrentAdd() {
     final SimpleEventBus eventBus = new SimpleEventBus();
     final FooEvent.Handler two =
         new FooEvent.Handler() {
+
           @Override
           public void onFoo(FooEvent event) {
             add(this);
@@ -148,6 +115,7 @@ public class SimpleEventBusTest extends EventBusTestBase {
         };
     FooEvent.Handler one =
         new FooEvent.Handler() {
+
           @Override
           public void onFoo(FooEvent event) {
             FooEvent.register(eventBus, two);
@@ -173,6 +141,7 @@ public class SimpleEventBusTest extends EventBusTestBase {
 
     FooEvent.Handler one =
         new FooEvent.Handler() {
+
           HandlerRegistration reg = addIt();
 
           @Override
@@ -203,6 +172,7 @@ public class SimpleEventBusTest extends EventBusTestBase {
     final SimpleEventBus eventBus = new SimpleEventBus();
     final FooEvent.Handler two =
         new FooEvent.Handler() {
+
           @Override
           public void onFoo(FooEvent event) {
             add(this);
@@ -215,6 +185,7 @@ public class SimpleEventBusTest extends EventBusTestBase {
         };
     FooEvent.Handler one =
         new FooEvent.Handler() {
+
           @Override
           public void onFoo(FooEvent event) {
             FooEvent.register(eventBus, two).removeHandler();
@@ -347,6 +318,7 @@ public class SimpleEventBusTest extends EventBusTestBase {
     assertThrowsNpe(() -> eventBus.fireEventFromSource(null, ""));
 
     assertThrowsNpe(() -> eventBus.fireEventFromSource(new FooEvent() {}, null));
+
     assertThrowsNpe(() -> eventBus.fireEventFromSource(null, "baker"));
   }
 
@@ -356,6 +328,7 @@ public class SimpleEventBusTest extends EventBusTestBase {
 
     FooEvent.Handler handler =
         new FooEvent.Handler() {
+
           @Override
           public void onFoo(FooEvent event) {
             add(this);
@@ -373,6 +346,7 @@ public class SimpleEventBusTest extends EventBusTestBase {
 
     FooEvent.Handler h =
         new FooEvent.Handler() {
+
           HandlerRegistration reg = FooEvent.register(eventBus, this);
 
           @Override
@@ -391,12 +365,48 @@ public class SimpleEventBusTest extends EventBusTestBase {
     assertNotFired(h);
   }
 
-  private void assertThrowsNpe(Command command) {
-    try {
-      command.execute();
-      fail("expected NullPointerException");
-    } catch (NullPointerException e) {
-      /* pass */
+  interface Command {
+
+    void execute();
+  }
+
+  static class ThrowingHandler implements FooEvent.Handler {
+
+    private final RuntimeException e;
+
+    public ThrowingHandler(RuntimeException e) {
+      this.e = e;
+    }
+
+    @Override
+    public void onFoo(FooEvent event) {
+      throw e;
+    }
+  }
+
+  class ShyHandler implements FooEvent.Handler {
+
+    HandlerRegistration r;
+
+    @Override
+    public void onFoo(FooEvent event) {
+      add(this);
+      r.removeHandler();
+    }
+  }
+
+  class SourcedHandler implements FooEvent.Handler {
+
+    final String expectedSource;
+
+    SourcedHandler(String source) {
+      this.expectedSource = source;
+    }
+
+    @Override
+    public void onFoo(FooEvent event) {
+      add(this);
+      assertEquals(expectedSource, event.getSource());
     }
   }
 }
